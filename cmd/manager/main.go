@@ -126,10 +126,27 @@ func main() {
 	)
 
 	// Create controller-runtime manager
+	// === HAO HACK: disable leader election for hyper-acm ===
+	// == error: ==
+	// github.com/go-logr/zapr.(*zapLogger).Error
+	// /remote-source/deps/gomod/pkg/mod/github.com/go-logr/zapr@v0.2.0/zapr.go:132
+	// github.com/operator-framework/operator-sdk/pkg/k8sutil.GetPod
+	// 	/remote-source/deps/gomod/pkg/mod/github.com/operator-framework/operator-sdk@v0.18.1/pkg/k8sutil/k8sutil.go:130
+	// github.com/operator-framework/operator-sdk/pkg/leader.myOwnerRef
+	// 	/remote-source/deps/gomod/pkg/mod/github.com/operator-framework/operator-sdk@v0.18.1/pkg/leader/leader.go:167
+	// github.com/operator-framework/operator-sdk/pkg/leader.Become
+	// 	/remote-source/deps/gomod/pkg/mod/github.com/operator-framework/operator-sdk@v0.18.1/pkg/leader/leader.go:67
+	// main.main
+	// 	/remote-source/app/cmd/manager/main.go:99
+	// runtime.main
+	// 	/usr/lib/golang/src/runtime/proc.go:225
+	// == reason: ==
+	// operator-sdk leader election gets the UID of the pod of the leader controller
+	// 	and use it in the ownerRef of the leader election configmap
 	mgr, err := ctrl.NewManager(cfg, manager.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: fmt.Sprintf(":%d", metricsPort),
-		LeaderElection:     true,
+		LeaderElection:     false,
 		LeaderElectionID:   "managedcluster-import-controller.open-cluster-management.io",
 	})
 	if err != nil {
